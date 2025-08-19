@@ -37,6 +37,7 @@ func getLinesChannel(f io.ReadCloser) <-chan string {
 			txt := make([]byte, 8)
 			_, err := f.Read(txt)
 			if err == io.EOF {
+				stream <- currentLine
 				close(stream)
 				break
 			}
