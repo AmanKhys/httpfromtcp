@@ -38,6 +38,9 @@ func parseRequestLine(reader io.Reader) (*RequestLine, error) {
 
 	fields := strings.Split(msg, fmt.Sprintf("\r\n"))
 	requestLineFields := strings.Split(fields[0], " ")
+	if len(requestLineFields) != 3 {
+		return nil, errors.New("not enough input for requestLine")
+	}
 
 	err = checkRequestLineFields(requestLineFields)
 	if err != nil {
@@ -45,9 +48,11 @@ func parseRequestLine(reader io.Reader) (*RequestLine, error) {
 	}
 
 	rLine := RequestLine{
-		HttpVersion:   requestLineFields[2],
+		HttpVersion:   requestLineFields[2][5:],
 		RequestTarget: requestLineFields[1],
 		Method:        requestLineFields[0],
+		// I can directly slice it and send the
+		// version since it has already been tested
 	}
 
 	return &rLine, nil
@@ -55,7 +60,7 @@ func parseRequestLine(reader io.Reader) (*RequestLine, error) {
 
 func checkRequestLineFields(rl []string) error {
 	var errs []error
-	ok := checkRLHttpVersion(rl[0])
+	ok := checkRLHttpVersion(rl[2])
 	if !ok {
 		errs = append(errs, errors.New("http version not parsable"))
 	}
@@ -63,7 +68,7 @@ func checkRequestLineFields(rl []string) error {
 	if !ok {
 		errs = append(errs, errors.New("request target not parsable"))
 	}
-	ok = checkRLMethod(rl[2])
+	ok = checkRLMethod(rl[0])
 	if !ok {
 		errs = append(errs, errors.New("request method not parsable"))
 	}
